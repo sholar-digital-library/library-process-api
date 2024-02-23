@@ -1,0 +1,18 @@
+{
+    "libraries":[
+    {
+      "library_code": "LIB123",
+      "library_branch": "Madhapur",
+      "total_books": 100,
+      "available_books": 65,
+      "books_rented": 35
+    },
+    {
+      "library_code": "LIB124",
+      "library_branch": "Manikonda",
+      "total_books": 130,
+      "available_books": 69,
+      "books_rented": 61
+    }
+  ]
+}

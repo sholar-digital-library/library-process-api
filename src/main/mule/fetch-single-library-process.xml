@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	
+	 <flow name="get:\library-process:library-process-api-config">
+        <logger level="INFO" doc:name="Start" doc:id="8dd907d0-a295-4d73-b0ee-080d44761065" message="Enter into fetch-single library flow"/>
+		<set-variable value='#[attributes.headers."correlation-id"]' doc:name="Set Variable for coraltion id" doc:id="f7748389-5665-4f50-bea3-ae0f10d2e117" variableName="corelation_id"/>
+		<logger level="INFO" doc:name="set variable for library code" doc:id="9dc9f8db-4b17-4052-a69e-ab9cfbf746fc" message="Setting library code as variable"/>
+		<set-variable value="#[attributes.queryParams.library_code]" doc:name="Set Variable for library code" doc:id="6df94357-cd36-4af4-aafa-9aaff6fc17a4" variableName="library_code"/>
+		<logger level="INFO" doc:name="fetch library details based on library code" doc:id="0d1f7de4-0d19-4be4-8ffe-789c68556897" message="Requesting for library details based on library_code"/>
+		<http:request method="GET" doc:name="Request for fetch library details based on library code" doc:id="ef6c6889-2f6e-4612-a605-18a64382d838" config-ref="HTTP_Request_configuration_for_library_system_api" path="/${library-system-api.get-single-library}" target="library_details">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "d7ccfd0ae49a41f29ca31351c828da3b",
+	"client-secret" : "5f97D63a46a9470Aa22b1966A85659b1",
+	"correlation-id" : vars.corelation_id
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"library_code" : vars.library_code
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="30466af8-626e-437d-9968-c697541c25ab" message="#[vars.library_details]"/>
+		<logger level="INFO" doc:name="Library found" doc:id="957e5be9-0151-4f77-971c-4706b607d5cc" message="The library details is found based on library code"/>
+		<logger level="INFO" doc:name="Request for all books" doc:id="68eb1c9f-f7aa-4d08-94bc-c066eb502c93" message="Requesting for the books details from book system api"/>
+		<http:request method="GET" doc:name="Request for all the books" doc:id="ce1fc74f-eb63-4491-918e-af365a43422d" config-ref="HTTP_Request_configuration_for_book_system_api" path="/${book-api.get-all-book}" target="books_details">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "88f0a6dca0154c8abd9b8d40cb458a33",
+	"co-relation-id" : vars.corelation_id,
+	"client-secret" : "3DFEF2cBF95544369AFE7FB2a5632416"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Books fetched" doc:id="1dad51b6-92b2-46f6-a9e4-f428196c8e98" message="All the book fetched from system api"/>
+		<logger level="INFO" doc:name="Set response" doc:id="d90da564-b3cd-4531-9644-2a99890b55f4" message="Setting data for response of single library details with books"/>
+		<ee:transform doc:name="Transform Message" doc:id="85456cc4-9451-4bc4-a259-8bfb5c91e018">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+var books =  (vars.books_details filter ((item, index) -> item.libraryCode == vars.library_code) map ((item, index) -> {
+	book_code: item.bookCode,
+	book_title: item.title,
+	book_author: item.author,
+	book_category: item.bookCategory,
+	book_read_time_hrs: item.readTimeInHrs,
+	book_rental_price: item.rentalPrice,
+	book_rating: item.rating,
+	best_seller: item.bestSeller
+}
+	))
+---
+
+{
+	library_code: vars.library_details.library_code,
+	address: vars.library_details.address,
+	library_phone_no: vars.library_details.library_phone_no,
+	library_email: vars.library_details.library_email,
+	books: if ( sizeOf(books) != 0 ) (books) else (['Books are not available'])
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="End" doc:id="2850e838-8691-48de-8b4a-c808938f76cb" message="Return  from the fetch single library flow"/>
+    
+</flow>
+	
+</mule>

@@ -1,0 +1,20 @@
+"http" : 
+  "port" : "8082"
+  "base_path" : "/scholar-digital-library-process"
+  
+"book-api" : 
+  "host" : "book-api-poc.us-e2.cloudhub.io"
+  "port" : "80"
+  "base-path" : "books"
+  "get-all-book" : "get-allBooks"
+  "client-id" : "88f0a6dca0154c8abd9b8d40cb458a33"
+  "client-secret" : "3DFEF2cBF95544369AFE7FB2a5632416"
+  
+"library-system-api" :
+  "host" : "scholar-library-system-api.us-e2.cloudhub.io"
+  "port" : "80"
+  "base-path" : "scholar-digital-library-system"
+  "get-all-library" : "libraries-system"
+  "get-single-library" : "library-system"
+  "client-id" : "d7ccfd0ae49a41f29ca31351c828da3b"
+  "client-secret" : "5f97D63a46a9470Aa22b1966A85659b1"

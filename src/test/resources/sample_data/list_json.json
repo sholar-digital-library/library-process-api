@@ -1,0 +1,30 @@
+[
+  {
+    "bookCode": "BK1",
+    "libraryCode": "LID103",
+    "title": "Ramayanam",
+    "author": "Valmiki",
+    "bookCategory": "Epic",
+    "readTimeInHrs": 150,
+    "rentalPrice": 50,
+    "rating": 5.0,
+    "bestSeller": "true",
+    "available_books": 98,
+    "rented_books": 2,
+    "total_books": 100
+  },
+  {
+    "bookCode": "BK3",
+    "libraryCode": "LID103",
+    "title": "Road to success",
+    "author": "Chandu",
+    "bookCategory": "Novel",
+    "readTimeInHrs": 60,
+    "rentalPrice": 20,
+    "rating": 5.0,
+    "bestSeller": "true",
+    "available_books": 10,
+    "rented_books": 0,
+    "total_books": 10
+  }
+]

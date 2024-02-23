@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="get:\libraries:library-process-config">
+        <logger level="INFO" doc:name="Start" doc:id="68dadf35-6744-4f45-b541-1bb08055f714" message="Enter into fetch libraries flow"/>
+		<http:request method="GET" doc:name="Request for fetch all libraries" doc:id="1d7ac3d4-98ec-4662-b922-db76ba82b516" path="/libraries" target="all_library_details" config-ref="HTTP_Request_configuration">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "f1d5acfd88bc464c97cbcb9d8335b9d3",
+	"client-secret" : "0a79decbb5b74227be2D92F7BE70760b",
+	"correlation-id" : "Value"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="fcd274fe-aae8-49de-bfb7-22c57730f6c7" message="#[vars.all_library_details]"/>
+		<http:request method="GET" doc:name="Request for fetch all the books" doc:id="62be0a83-0e11-42f9-b9e7-815e6b7d3af3" config-ref="HTTP_Request_configuration1-book" path="/get-allBooks" target="book_details">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "88f0a6dca0154c8abd9b8d40cb458a33",
+	"co-relation-id" : "Value",
+	"client-secret" : "3DFEF2cBF95544369AFE7FB2a5632416"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="6c11f92f-2eda-467a-b972-cd1e78d052fc" message="#[vars.book_details]"/>
+		<ee:transform doc:name="Transform Message" doc:id="f2d80bae-2104-42cc-b7bb-0d8730da11df">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	libraries: (vars.all_library_details map ( alllibrarydetail , indexOfAlllibrarydetail ) -> {
+		library_code: alllibrarydetail.library_code,
+		library_branch: alllibrarydetail.library_branch_name,
+		total_books:sum(( vars.book_details filter ((item, index) -> item.libraryCode == alllibrarydetail.library_code)).total_books) default 0,
+		available_books: sum(( vars.book_details filter ((item, index) -> item.libraryCode == alllibrarydetail.library_code)).available_books) default 0,
+		books_rented:sum(( vars.book_details filter ((item, index) -> item.libraryCode == alllibrarydetail.library_code)).rented_books) default 0
+	})
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="End" doc:id="d08c7b7b-0f42-4bac-ab65-82d80d603409" message="Return from fetch libraries flow"/>
+    
+</flow>
+</mule>

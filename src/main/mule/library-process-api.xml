@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="library-process-api-httpListenerConfig" basePath="${http.base_path}">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="library-process-api-config" api="library-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+   
+    <configuration-properties doc:name="Configuration properties" doc:id="4f891d8b-4fd8-4342-9acc-9cf1398732ae" file="process-library-property.yaml" />
+	<configuration doc:name="Configuration" doc:id="140b5843-9373-4686-aba2-cf2f41ed8833" defaultErrorHandler-ref="global-error-library-processError_Handler" />
+	<api-gateway:autodiscovery apiId="19220118" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="9331abb2-0f54-47f3-8352-8379ffc4e45a" flowRef="library-process-api-main" />
+	<flow name="library-process-api-main">
+        <http:listener config-ref="library-process-api-httpListenerConfig" path="/*" allowedMethods="GET">
+            <http:response statusCode="#[vars.httpStatus default 200]" reasonPhrase="#[vars.errorPhase]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]" reasonPhrase="#[vars.errorPhase]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Start" doc:id="8b0ecacd-5815-40d9-a423-d0ae42e196e0" message="Application Running..."/>
+		<apikit:router config-ref="library-process-api-config" />
+		<logger level="INFO" doc:name="End" doc:id="dcf11428-8723-4dc3-80f7-5dedc435f527" message="Response send success !!"/>
+    </flow>
+    
+    <flow name="library-process-api-console">
+        <http:listener config-ref="library-process-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="library-process-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+ 
+</mule>

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="all-library" format="json">
+      <types:shape format="weave" example="all-libraries.json"><![CDATA[%dw 2.0
+
+type all_library = Array<{|  library_code: String,   library_email: String,   address: String,   library_branch_name: String,   library_phone_no: Number {"typeId": "double"}|}> {"example": "[{\\\"library_code\\\":\\\"LID103\\\",\\\"library_email\\\":\\\"hydrabadibrary@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank\\\",\\\"library_branch_name\\\":\\\"hydrabad\\\",\\\"library_phone_no\\\":9874561523},{\\\"library_code\\\":\\\"LID104\\\",\\\"library_email\\\":\\\"vizag1library@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank 1\\\",\\\"library_branch_name\\\":\\\"vizag-1\\\",\\\"library_phone_no\\\":7894561289},{\\\"library_code\\\":\\\"LID105\\\",\\\"library_email\\\":\\\"vizagibrary@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank\\\",\\\"library_branch_name\\\":\\\"vizag\\\",\\\"library_phone_no\\\":7895462145},{\\\"library_code\\\":\\\"LID106\\\",\\\"library_email\\\":\\\"vizagibrary@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank\\\",\\\"library_branch_name\\\":\\\"vizag\\\",\\\"library_phone_no\\\":7895462145},{\\\"library_code\\\":\\\"LID107\\\",\\\"library_email\\\":\\\"vizagibrary@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank\\\",\\\"library_branch_name\\\":\\\"vizag\\\",\\\"library_phone_no\\\":7895462145},{\\\"library_code\\\":\\\"LID108\\\",\\\"library_email\\\":\\\"vizagibrary@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank\\\",\\\"library_branch_name\\\":\\\"vizag\\\",\\\"library_phone_no\\\":7895462145}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="all-book" format="json">
+      <types:shape format="weave" example="examples/all-books.json"><![CDATA[%dw 2.0
+
+type all_book = Array<{|  bookCode: String,   libraryCode: String,   title: String,   author: String,   bookCategory: String,   readTimeInHrs: Number {"typeId": "int"},   rentalPrice: Number {"typeId": "int"},   rating: Number {"typeId": "double"},   bestSeller: String,   available_books: Number {"typeId": "int"},   rented_books: Number {"typeId": "int"},   total_books: Number {"typeId": "int"}|}> {"example": "[{\\\"bookCode\\\":\\\"BK1\\\",\\\"libraryCode\\\":\\\"LID103\\\",\\\"title\\\":\\\"Ramayanam\\\",\\\"author\\\":\\\"Valmiki\\\",\\\"bookCategory\\\":\\\"Epic\\\",\\\"readTimeInHrs\\\":150,\\\"rentalPrice\\\":50,\\\"rating\\\":5.0,\\\"bestSeller\\\":\\\"true\\\",\\\"available_books\\\":98,\\\"rented_books\\\":2,\\\"total_books\\\":100},{\\\"bookCode\\\":\\\"BK3\\\",\\\"libraryCode\\\":\\\"LID103\\\",\\\"title\\\":\\\"Road to success\\\",\\\"author\\\":\\\"Chandu\\\",\\\"bookCategory\\\":\\\"Novel\\\",\\\"readTimeInHrs\\\":60,\\\"rentalPrice\\\":20,\\\"rating\\\":5.0,\\\"bestSeller\\\":\\\"true\\\",\\\"available_books\\\":10,\\\"rented_books\\\":0,\\\"total_books\\\":10}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="single-library" format="json">
+      <types:shape format="weave" example="examples/single-library.json"><![CDATA[%dw 2.0
+
+type single_library = {|
+  library_code: String, 
+  library_email: String, 
+  address: String, 
+  library_branch_name: String, 
+  library_phone_no: Number {"typeId": "double"}
+|} {"example": "{\\\"library_code\\\":\\\"LID103\\\",\\\"library_email\\\":\\\"hydrabadibrary@schoolar.com\\\",\\\"address\\\":\\\"oppsite to HDFC bank\\\",\\\"library_branch_name\\\":\\\"hydrabad\\\",\\\"library_phone_no\\\":9874561523}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#30f0a147-ccfa-42ad-8fbb-c3439c64e661">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:variables>
+          <types:variable name="library_details" type="single-library"/>
+          <types:variable name="book_details" type="all-book"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#f2d80bae-2104-42cc-b7bb-0d8730da11df">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:variables>
+          <types:variable name="book_details" type="all-book"/>
+          <types:variable name="all_library_details" type="all-library"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

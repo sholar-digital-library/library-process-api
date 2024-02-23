@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="45aee7bb-b9e7-4a9d-8fc1-ebfdc7b78470" basePath="/scholar-digital-library" >
+		<http:request-connection host="library-system-api-1.us-e2.cloudhub.io" port="80" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1-book" doc:name="HTTP Request configuration" doc:id="0ac681e6-4290-48b3-bacf-437b9da99c94" basePath="/books" >
+		<http:request-connection host="book-api-poc.us-e2.cloudhub.io" port="80" />
+	</http:request-config>
+	<flow name="get:\library:library-process-config">
+        <logger level="INFO" doc:name="Start" doc:id="358fcf41-90b9-4b73-b652-5aab305faf0f" message="Enter into fetch library flow"/>
+		<set-variable value="#[attributes.queryParams.library_code]" doc:name="Set Variable for library code" doc:id="c594dd7f-5f7d-4976-88b1-5a3d00b07697" variableName="library_code"/>
+		<http:request method="GET" doc:name="Request for the fetch details of single library based on library code" doc:id="776ded87-df1d-453a-9020-cb1cac73947c" config-ref="HTTP_Request_configuration" path="/library" target="library_details">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "f1d5acfd88bc464c97cbcb9d8335b9d3",
+	"client-secret" : "0a79decbb5b74227be2D92F7BE70760b",
+	"correlation-id" : "Value"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"library_code" : vars.library_code
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="bdcee90d-53b6-4dda-8455-1b42c5c88458" message="#[vars.library_details]"/>
+		<http:request method="GET" doc:name="Request for fetching all books record" doc:id="58b9d871-4f03-4555-8302-20c8cb1b3739" config-ref="HTTP_Request_configuration1-book" path="/get-allBooks" target="book_details">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "88f0a6dca0154c8abd9b8d40cb458a33",
+	"co-relation-id" : "Value",
+	"client-secret" : "3DFEF2cBF95544369AFE7FB2a5632416"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="6697bdba-2d86-4cda-ae54-d24056ddc3eb" message="#[vars.book_details]"/>
+		<ee:transform doc:name="Transform Message" doc:id="30f0a147-ccfa-42ad-8fbb-c3439c64e661">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var books =  (vars.book_details filter ((item, index) -> item.libraryCode == vars.library_code) map ((item, index) -> {
+	book_code: item.bookCode,
+	book_title: item.title,
+	book_author: item.author,
+	book_category: item.bookCategory,
+	book_read_time_hrs: item.readTimeInHrs,
+	book_rental_price: item.rentalPrice,
+	book_rating: item.rating,
+	best_seller: item.bestSeller
+}
+	))
+---
+{
+	library_code: vars.library_details.library_code,
+	address: vars.library_details.address,
+	library_phone_no: vars.library_details.library_phone_no,
+	library_email: vars.library_details.library_email,
+	books: if ( sizeOf(books) != 0 ) (books) else (['Books are not available'])
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="End" doc:id="19c58445-0532-44b8-ab91-bef3e587fe6c" message="Return from the fetch library flow"/>
+    
+</flow>
+</mule>

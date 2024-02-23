@@ -1,0 +1,28 @@
+{
+  "library_code": "LIB123",
+  "address": "No.36, Ayyappa society, Madhapur, Hyderabad-500008",
+  "library_phone_no": 4024455669,
+  "library_email": "scholar.madhapur@gmail.com",
+  "books":[
+    {
+      "book_code": "BK123",
+      "book_title": "Master mind",
+      "book_author": "Vinod Sharma",
+      "book_category": "Novel",
+      "book_read_time_hrs": 36,
+      "book_rental_price": 100,
+      "book_rating": 4.5,
+      "best_seller": "No"
+    },
+    {
+      "book_code": "BK124",
+      "book_title": "Quantum Physics",
+      "book_author": "Renuka Science",
+      "book_category": "Novel",
+      "book_read_time_hrs": 65,
+      "book_rental_price": 200,
+      "book_rating": 4.5,
+      "best_seller": "No"
+    }
+  ]
+}

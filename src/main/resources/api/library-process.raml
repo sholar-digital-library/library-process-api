@@ -1,0 +1,38 @@
+#%RAML 1.0
+title: library-process
+
+description: This api is for the process api layer of the library related process
+baseUri: http://localhost:8082/scholar-digital-library
+
+traits:
+  library-code-qp: !include exchange_modules/67aaa93a-e299-44df-845d-3cdc46a34dcc/library_code/1.0.2/library_code.raml
+  error-response: !include exchange_modules/67aaa93a-e299-44df-845d-3cdc46a34dcc/error-response-library/1.0.0/error-response-library.raml
+  security-schema: !include exchange_modules/67aaa93a-e299-44df-845d-3cdc46a34dcc/custome-security-schema/1.0.0/custome-security-schema.raml
+uses:
+  Lib: exchange_modules/67aaa93a-e299-44df-845d-3cdc46a34dcc/library-datatypes/1.0.0/library-datatypes.raml
+
+
+/library:
+  get:
+    is:
+      [library-code-qp,error-response,security-schema]
+    description: For fetching the single library details based on library_code with list of books present in that library
+    responses:
+      200:
+        description: If library is present return the library details
+        body:
+          application/json:
+            type: Lib.fetch-single-process
+            example: !include examples/fetch-single-library-response.json
+/libraries:
+  get:
+    is:
+      [error-response,security-schema]
+    description: for fetching all the library details list along with total books,availableBooks and books Rented
+    responses:
+      200:
+        description: Return the list of all libraries
+        body:
+          application/json:
+            type: Lib.fetch-all-process
+            example: !include examples/fetch-libraries-all-response.json

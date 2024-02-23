@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="library-process-httpListenerConfig" basePath="/scholar-digital-library">
+        <http:listener-connection host="localhost" port="8081" />
+    </http:listener-config>
+    <apikit:config name="library-process-config" api="library-process.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<configuration doc:name="Configuration" doc:id="02db224f-7103-423b-9c32-c42b2f46c423" defaultErrorHandler-ref="global-error-handlerError_Handler" />
+	<api-gateway:autodiscovery apiId="19185098" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="231990ab-1c41-42c0-b9cc-c86d8ac09d8d" flowRef="library-process-main" />
+	<flow name="library-process-main">
+        <http:listener config-ref="library-process-httpListenerConfig" path="/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Start" doc:id="61f2c117-9f8b-48be-aff2-37ed52a80c5e" message="Application Running..."/>
+		<logger level="INFO" doc:name="Logger" doc:id="e7b6cc9d-9afa-431a-b765-7d57e5c2f7c0" message="API kit"/>
+		<apikit:router config-ref="library-process-config" />
+		<logger level="INFO" doc:name="End" doc:id="cc249a3d-162a-40db-818e-8ef1f7659484" message="Response sends successfully !"/>
+    </flow>
+    <flow name="library-process-console">
+        <http:listener config-ref="library-process-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="library-process-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+</mule>
